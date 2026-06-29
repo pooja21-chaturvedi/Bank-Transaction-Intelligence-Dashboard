@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BankIQ — Ultimate Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080d18;--s1:#0f1623;--s2:#141e30;--s3:#1a2540;
+  --b:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.1);
+  --blue:#4f8ef7;--cyan:#22d3ee;--violet:#a78bfa;
+  --em:#34d399;--am:#fbbf24;--rose:#fb7185;--orange:#fb923c;
+  --t1:#f1f5f9;--t2:#94a3b8;--t3:#475569;--t4:#1e293b;
+  --sel:rgba(79,142,247,0.15);--selb:rgba(79,142,247,0.5);
+  --r:12px;--r2:8px;--tr:all .22s ease;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;}
+
+/* ══ SCROLLBAR ══ */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px;}
+
+/* ══ HEADER ══ */
+.hdr{
+  position:sticky;top:0;z-index:999;
+  background:linear-gradient(180deg,rgba(8,13,24,.98) 0%,rgba(15,22,35,.95) 100%);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--b2);
+  padding:0 24px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.hdr-l{display:flex;align-items:center;gap:12px;}
+.logo{
+  width:36px;height:36px;border-radius:9px;
+  background:linear-gradient(135deg,var(--blue),var(--violet));
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  box-shadow:0 4px 14px rgba(79,142,247,.35);
+}
+.hdr-brand h1{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.2px;}
+.hdr-brand p{font-size:10px;color:var(--t3);margin-top:1px;}
+.hdr-r{display:flex;align-items:center;gap:10px;}
+.badge{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;}
+.badge.live{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:var(--em);}
+.badge.count{background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.25);color:var(--blue);}
+.dot-pulse{width:5px;height:5px;background:var(--em);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.8);}}
+#hdDate{font-size:10px;color:var(--t3);}
+
+/* ══ FILTER BAR ══ */
+.fbar{
+  background:var(--s1);border-bottom:1px solid var(--b);
+  padding:8px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:44px;
+}
+.fbar-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);white-space:nowrap;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;align-items:center;}
+.chip{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(79,142,247,.15);border:1px solid rgba(79,142,247,.4);
+  color:var(--blue);font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;
+  cursor:pointer;transition:var(--tr);
+}
+.chip:hover{background:rgba(79,142,247,.28);}
+.chip-x{font-size:12px;line-height:1;}
+.no-chip{font-size:11px;color:var(--t3);font-style:italic;}
+.btn-clear{
+  background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.3);
+  color:var(--rose);font-size:10px;font-weight:600;padding:4px 10px;border-radius:10px;
+  cursor:pointer;font-family:'Inter',sans-serif;transition:var(--tr);white-space:nowrap;
+}
+.btn-clear:hover{background:rgba(251,113,133,.22);}
+
+/* ══ DROPDOWNS SLICER ROW ══ */
+.slicer-row{
+  background:var(--s2);border-bottom:1px solid var(--b);
+  padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.sl-group{display:flex;flex-direction:column;gap:4px;}
+.sl-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);}
+.sl-select{
+  background:var(--bg);border:1px solid var(--b2);color:var(--t1);
+  padding:6px 28px 6px 10px;border-radius:var(--r2);font-size:11px;font-family:'Inter',sans-serif;
+  cursor:pointer;outline:none;appearance:none;min-width:130px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2394a3b8' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  transition:var(--tr);
+}
+.sl-select:focus{border-color:var(--blue);}
+.sl-select option{background:#1e293b;}
+.sl-divider{width:1px;height:32px;background:var(--b2);margin:0 4px;}
+.sl-txn{font-size:11px;color:var(--t2);margin-left:auto;}
+.sl-txn strong{color:var(--blue);font-size:13px;font-weight:700;}
+
+/* ══ MAIN ══ */
+.main{padding:20px 24px;max-width:1800px;margin:0 auto;}
+
+/* ══ KPI ROW ══ */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;}
+.kpi{
+  background:var(--s1);border:1px solid var(--b);border-radius:var(--r);
+  padding:16px 18px;position:relative;overflow:hidden;
+  transition:var(--tr);cursor:default;
+}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r) var(--r) 0 0;}
+.kpi.bl::before{background:linear-gradient(90deg,var(--blue),var(--cyan));}
+.kpi.vi::before{background:linear-gradient(90deg,var(--violet),#e879f9);}
+.kpi.em::before{background:linear-gradient(90deg,var(--em),#6ee7b7);}
+.kpi.am::before{background:linear-gradient(90deg,var(--am),#fde68a);}
+.kpi.ro::before{background:linear-gradient(90deg,var(--rose),var(--orange));}
+.kpi-ico{position:absolute;top:14px;right:14px;font-size:20px;opacity:.5;}
+.kpi-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t3);margin-bottom:8px;}
+.kpi-val{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;line-height:1;transition:var(--tr);}
+.kpi-val.fade{opacity:.3;transform:translateY(4px);}
+.kpi-sub{font-size:10px;color:var(--t2);margin-top:5px;}
+.kpi-delta{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;margin-left:4px;}
+.kpi-delta.up{background:rgba(52,211,153,.12);color:var(--em);}
+.kpi-delta.ok{background:rgba(148,163,184,.08);color:var(--t2);}
+
+/* ══ INSIGHT STRIP ══ */
+.insight-strip{
+  background:linear-gradient(135deg,rgba(79,142,247,.05) 0%,rgba(167,139,250,.05) 100%);
+  border:1px solid rgba(167,139,250,.15);border-radius:var(--r);
+  padding:11px 18px;margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.ins-hd{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--violet);white-space:nowrap;}
+.ins-pill{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.03);border:1px solid var(--b);
+  border-radius:12px;padding:3px 10px;font-size:10px;color:var(--t2);white-space:nowrap;
+}
+.ins-pill b{color:var(--t1);}
+.ins-dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0;}
+
+/* ══ CHART GRID ══ */
+.row{display:grid;gap:14px;margin-bottom:14px;}
+.r1{grid-template-columns:1fr;}
+.r2{grid-template-columns:1fr 1fr;}
+.r3{grid-template-columns:2fr 1fr 1fr;}
+.r32{grid-template-columns:1.4fr 1fr 1fr;}
+.r4{grid-template-columns:repeat(4,1fr);}
+.r21{grid-template-columns:2fr 1fr;}
+
+.card{
+  background:var(--s1);border:1px solid var(--b);border-radius:var(--r);
+  padding:18px;position:relative;overflow:hidden;transition:var(--tr);
+}
+.card:hover{box-shadow:0 6px 24px rgba(0,0,0,.3);}
+.card.selected{border-color:var(--selb);box-shadow:0 0 0 1px rgba(79,142,247,.2),0 6px 24px rgba(0,0,0,.3);}
+
+.card-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.card-ttl{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;margin-bottom:2px;}
+.card-sub{font-size:9px;color:var(--t3);}
+.tag{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;border-radius:5px;white-space:nowrap;}
+.tag.bl{background:rgba(79,142,247,.12);color:var(--blue);}
+.tag.vi{background:rgba(167,139,250,.12);color:var(--violet);}
+.tag.cy{background:rgba(34,211,238,.12);color:var(--cyan);}
+.tag.em{background:rgba(52,211,153,.12);color:var(--em);}
+.tag.am{background:rgba(251,191,36,.12);color:var(--am);}
+.tag.ro{background:rgba(251,113,133,.12);color:var(--rose);}
+.tag.or{background:rgba(251,146,60,.12);color:var(--orange);}
+
+/* click hint */
+.chint{position:absolute;bottom:8px;right:10px;font-size:8px;color:var(--t3);display:flex;align-items:center;gap:2px;}
+
+/* sel badge */
+.sel-badge{
+  display:none;position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  background:rgba(79,142,247,.18);border:1px solid var(--selb);
+  border-radius:8px;padding:2px 10px;font-size:9px;font-weight:600;color:var(--blue);
+  white-space:nowrap;z-index:10;pointer-events:none;
+}
+.sel-badge.show{display:block;}
+
+.cw{position:relative;}
+.h200{height:200px;} .h220{height:220px;} .h260{height:260px;}
+.h280{height:280px;} .h300{height:300px;} .h180{height:180px;}
+
+/* ══ GENDER STATS ══ */
+.g-stats{display:flex;justify-content:space-around;margin-top:10px;}
+.g-item{text-align:center;}
+.g-val{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;transition:var(--tr);}
+.g-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+
+/* ══ CITY RANK LIST ══ */
+.city-list{list-style:none;}
+.ci{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 5px;border-bottom:1px solid rgba(255,255,255,.03);
+  cursor:pointer;border-radius:6px;transition:var(--tr);
+}
+.ci:last-child{border-bottom:none;}
+.ci:hover{background:rgba(255,255,255,.03);}
+.ci.active{background:var(--sel);border-color:rgba(79,142,247,.2);}
+.ci-rk{font-size:9px;font-weight:700;color:var(--t3);width:12px;text-align:center;}
+.ci-nm{font-size:11px;font-weight:500;flex:1;}
+.ci-bar-w{width:64px;height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;}
+.ci-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .4s;}
+.ci-ct{font-size:10px;font-weight:600;color:var(--t2);width:38px;text-align:right;}
+
+/* ══ FOOTER ══ */
+.footer{
+  text-align:center;padding:18px;font-size:10px;color:var(--t3);
+  border-top:1px solid var(--b);margin-top:20px;
+}
+.footer span{color:var(--blue);}
+
+/* ══ TOOLTIP OVERRIDE ══ */
+.chartjs-tooltip-key{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<header class="hdr">
+  <div class="hdr-l">
+    <div class="logo">🏦</div>
+    <div class="hdr-brand">
+      <h1>BankIQ · Ultimate Dashboard</h1>
+      <p>India Bank Transactions · Aug–Oct 2016 · 1,048,567 Records</p>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <div class="badge live"><div class="dot-pulse"></div>Interactive</div>
+    <div class="badge count" id="txnBadge">1,048,567 txns</div>
+    <span id="hdDate"></span>
+  </div>
+</header>
+
+<!-- ══ ACTIVE FILTER BAR ══ -->
+<div class="fbar">
+  <span class="fbar-label">🔍 Active Filters</span>
+  <div class="chips" id="chips"><span class="no-chip">Click any chart element or use slicers below to cross-filter everything — Power BI style</span></div>
+  <button class="btn-clear" id="btnClear" style="display:none" onclick="clearAll()">✕ Clear All</button>
+</div>
+
+<!-- ══ SLICER ROW ══ -->
+<div class="slicer-row">
+  <div class="sl-group">
+    <span class="sl-label">📅 Month</span>
+    <select class="sl-select" id="slMonth" onchange="slicerChange('month',this.value)">
+      <option value="">All Months</option>
+      <option value="8">August 2016</option>
+      <option value="9">September 2016</option>
+      <option value="10">October 2016</option>
+    </select>
+  </div>
+  <div class="sl-group">
+    <span class="sl-label">👤 Gender</span>
+    <select class="sl-select" id="slGender" onchange="slicerChange('gender',this.value)">
+      <option value="">All Genders</option>
+      <option value="M">Male</option>
+      <option value="F">Female</option>
+    </select>
+  </div>
+  <div class="sl-group">
+    <span class="sl-label">🏙️ City</span>
+    <select class="sl-select" id="slCity" onchange="slicerChange('city',this.value)">
+      <option value="">All Cities</option>
+      <option>MUMBAI</option><option>NEW DELHI</option><option>BANGALORE</option>
+      <option>GURGAON</option><option>DELHI</option><option>NOIDA</option>
+      <option>CHENNAI</option><option>PUNE</option><option>HYDERABAD</option><option>THANE</option>
+    </select>
+  </div>
+  <div class="sl-group">
+    <span class="sl-label">💰 Amount Range</span>
+    <select class="sl-select" id="slBucket" onchange="slicerChange('bucket',this.value)">
+      <option value="">All Amounts</option>
+      <option value="<500">Below ₹500</option>
+      <option value="500-2K">₹500 – ₹2,000</option>
+      <option value="2K-10K">₹2,000 – ₹10,000</option>
+      <option value=">10K">Above ₹10,000</option>
+    </select>
+  </div>
+  <div class="sl-group">
+    <span class="sl-label">🏧 Balance Tier</span>
+    <select class="sl-select" id="slBal" onchange="slicerChange('bal',this.value)">
+      <option value="">All Balances</option>
+      <option value="0-10K">₹0 – ₹10K</option>
+      <option value="10K-50K">₹10K – ₹50K</option>
+      <option value="50K-100K">₹50K – ₹100K</option>
+      <option value="100K-500K">₹100K – ₹500K</option>
+      <option value="500K+">Above ₹500K</option>
+    </select>
+  </div>
+  <div class="sl-divider"></div>
+  <div class="sl-txn">Showing <strong id="slTxnCount">1,048,567</strong> transactions</div>
+</div>
+
+<!-- ══ MAIN DASHBOARD ══ -->
+<main class="main">
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi bl"><span class="kpi-ico">📊</span><div class="kpi-lbl">Total Transactions</div><div class="kpi-val" id="k0">1,048,567</div><div class="kpi-sub">All records <span class="kpi-delta up">↑ Aug–Oct 16</span></div></div>
+    <div class="kpi vi"><span class="kpi-ico">💸</span><div class="kpi-lbl">Total Volume (INR)</div><div class="kpi-val" id="k1">₹165.1 Cr</div><div class="kpi-sub">Gross amount <span class="kpi-delta up">↑ Growing</span></div></div>
+    <div class="kpi em"><span class="kpi-ico">📈</span><div class="kpi-lbl">Avg Transaction</div><div class="kpi-val" id="k2">₹1,574</div><div class="kpi-sub">Per transaction <span class="kpi-delta ok">Stable</span></div></div>
+    <div class="kpi am"><span class="kpi-ico">♂️</span><div class="kpi-lbl">Male Transactions</div><div class="kpi-val" id="k3">765,530</div><div class="kpi-sub">73.0% of total <span class="kpi-delta up">Dominant</span></div></div>
+    <div class="kpi ro"><span class="kpi-ico">♀️</span><div class="kpi-lbl">Female Transactions</div><div class="kpi-val" id="k4">281,936</div><div class="kpi-sub">26.9% of total <span class="kpi-delta ok">Steady</span></div></div>
+  </div>
+
+  <!-- Insight Strip -->
+  <div class="insight-strip">
+    <span class="ins-hd">💡 Key Insights</span>
+    <div class="ins-pill"><span class="ins-dot" style="background:var(--blue)"></span>Mumbai leads: <b>103.6K txns · ₹17.97Cr</b></div>
+    <div class="ins-pill"><span class="ins-dot" style="background:var(--violet)"></span>August: <b>62.4%</b> of all volume</div>
+    <div class="ins-pill"><span class="ins-dot" style="background:var(--em)"></span>Peak hour: <b>8 PM</b> — 97,053 txns</div>
+    <div class="ins-pill"><span class="ins-dot" style="background:var(--am)"></span><b>51.7%</b> txns below ₹500</div>
+    <div class="ins-pill"><span class="ins-dot" style="background:var(--rose)"></span>Male spend: <b>71.6%</b> of total volume</div>
+    <div class="ins-pill"><span class="ins-dot" style="background:var(--cyan)"></span>Avg balance: <b>₹1.15L</b> per customer</div>
+  </div>
+
+  <!-- ROW 1: Hourly Trend (full width) -->
+  <div class="row r1">
+    <div class="card" id="card-hour">
+      <div class="card-hd">
+        <div><div class="card-ttl">Transaction Activity by Hour of Day</div><div class="card-sub">Click any bar to cross-filter all charts · Evening peak 19:00–21:00</div></div>
+        <span class="tag bl">HOURLY PATTERN</span>
+      </div>
+      <div class="sel-badge" id="sb-hour"></div>
+      <div class="cw h220"><canvas id="cHour"></canvas></div>
+      <div class="chint">👆 Click bar to filter</div>
+    </div>
+  </div>
+
+  <!-- ROW 2: City + Gender + Bucket -->
+  <div class="row r3">
+    <div class="card" id="card-city">
+      <div class="card-hd">
+        <div><div class="card-ttl">Top 10 Cities by Transactions</div><div class="card-sub">Click city bar to cross-filter</div></div>
+        <span class="tag vi">GEOGRAPHY</span>
+      </div>
+      <div class="sel-badge" id="sb-city"></div>
+      <div class="cw h280"><canvas id="cCity"></canvas></div>
+      <div class="chint">👆 Click to filter</div>
+    </div>
+    <div class="card" id="card-gender">
+      <div class="card-hd">
+        <div><div class="card-ttl">Gender Distribution</div><div class="card-sub">Click segment to cross-filter</div></div>
+        <span class="tag cy">GENDER</span>
+      </div>
+      <div class="sel-badge" id="sb-gender"></div>
+      <div class="cw h200"><canvas id="cGender"></canvas></div>
+      <div class="g-stats">
+        <div class="g-item"><div class="g-val" id="gM" style="color:var(--blue)">765K</div><div class="g-lbl">Male</div></div>
+        <div class="g-item"><div class="g-val" id="gF" style="color:var(--rose)">282K</div><div class="g-lbl">Female</div></div>
+        <div class="g-item"><div class="g-val" id="gPct" style="color:var(--am)">73%</div><div class="g-lbl">M ratio</div></div>
+      </div>
+    </div>
+    <div class="card" id="card-bucket">
+      <div class="card-hd">
+        <div><div class="card-ttl">Transaction Size Segments</div><div class="card-sub">Click segment to cross-filter</div></div>
+        <span class="tag am">AMOUNT RANGE</span>
+      </div>
+      <div class="sel-badge" id="sb-bucket"></div>
+      <div class="cw h200"><canvas id="cBucket"></canvas></div>
+      <div class="chint">👆 Click to filter</div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Monthly + Balance + City Rank List -->
+  <div class="row r32">
+    <div class="card" id="card-month">
+      <div class="card-hd">
+        <div><div class="card-ttl">Monthly Volume &amp; Transaction Count</div><div class="card-sub">Click a month to cross-filter all charts</div></div>
+        <span class="tag em">MONTHLY TREND</span>
+      </div>
+      <div class="sel-badge" id="sb-month"></div>
+      <div class="cw h220"><canvas id="cMonth"></canvas></div>
+      <div class="chint">👆 Click to filter</div>
+    </div>
+    <div class="card" id="card-bal">
+      <div class="card-hd">
+        <div><div class="card-ttl">Account Balance Tiers</div><div class="card-sub">Click a tier to filter</div></div>
+        <span class="tag ro">WEALTH SEGMENT</span>
+      </div>
+      <div class="sel-badge" id="sb-bal"></div>
+      <div class="cw h220"><canvas id="cBal"></canvas></div>
+      <div class="chint">👆 Click to filter</div>
+    </div>
+    <div class="card">
+      <div class="card-hd">
+        <div><div class="card-ttl">City Rankings</div><div class="card-sub">Click row to filter</div></div>
+        <span class="tag bl">RANK</span>
+      </div>
+      <ul class="city-list" id="cityList"></ul>
+    </div>
+  </div>
+
+  <!-- ROW 4: City Amount Bar + Hour Amount Heatmap -->
+  <div class="row r2">
+    <div class="card" id="card-cityamt">
+      <div class="card-hd">
+        <div><div class="card-ttl">City Transaction Volume (₹ Cr)</div><div class="card-sub">Total INR processed per city · Click to filter</div></div>
+        <span class="tag or">VOLUME</span>
+      </div>
+      <div class="sel-badge" id="sb-cityamt"></div>
+      <div class="cw h220"><canvas id="cCityAmt"></canvas></div>
+      <div class="chint">👆 Click to filter</div>
+    </div>
+    <div class="card" id="card-gbal">
+      <div class="card-hd">
+        <div><div class="card-ttl">Gender × Balance Tier</div><div class="card-sub">Stacked view of wealth by gender</div></div>
+        <span class="tag vi">CROSS-SEGMENT</span>
+      </div>
+      <div class="cw h220"><canvas id="cGBal"></canvas></div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <span>BankIQ</span> · Ultimate Cross-Filter Dashboard · 1,048,567 bank transactions · India · Aug–Oct 2016 · Click any element to filter · Click again to deselect
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// EMBEDDED DATA
+// ═══════════════════════════════════════════════════════════════════
+const B = {
+  totalCount:1048567, totalAmt:1650795732,
+  maleC:765530, femaleC:281936, malAmt:1181644838, femAmt:466810951,
+  avgBal:115403.54,
+  cities:[
+    {n:'MUMBAI',     c:103596,a:179689117,M:70182, F:32634},
+    {n:'NEW DELHI',  c:84928, a:160705853,M:60500, F:24420},
+    {n:'BANGALORE',  c:81555, a:118424843,M:57480, F:24053},
+    {n:'GURGAON',    c:73818, a:112094694,M:48739, F:25079},
+    {n:'DELHI',      c:71019, a:106224940,M:49099, F:21920},
+    {n:'NOIDA',      c:32784, a:44463433, M:23485, F:9299},
+    {n:'CHENNAI',    c:30009, a:44637821, M:22787, F:7221},
+    {n:'PUNE',       c:25851, a:39590349, M:19234, F:6611},
+    {n:'HYDERABAD',  c:23049, a:36177394, M:16797, F:6252},
+    {n:'THANE',      c:21505, a:27158101, M:15873, F:5607},
+  ],
+  months:[
+    {n:'August',   m:8,  c:653933,a:1030599494},
+    {n:'September',m:9,  c:390975,a:612531219},
+    {n:'October',  m:10, c:3659,  a:7665019},
+  ],
+  hours:{0:17977,1:8851,2:5553,3:4720,4:4571,5:5359,6:8218,7:14579,8:23523,9:33098,10:42645,11:52410,12:60879,13:65019,14:66554,15:64853,16:64357,17:69222,18:79332,19:94396,20:97053,21:80105,22:53529,23:31764},
+  hourAmt:{0:14071178,1:6315856,2:3107289,3:3029125,4:2363808,5:2264720,6:4609621,7:7618529,8:12594288,9:19461287,10:28637690,11:40150394,12:53741234,13:63665601,14:65141179,15:62624928,16:64314051,17:68189169,18:73097600,19:79456159,20:80419867,21:55512882,22:34657769,23:24122320},
+  buckets:[{n:'< ₹500',k:'<500',c:542143,a:101638676},{n:'₹500–2K',k:'500-2K',c:341211,a:338717813},{n:'₹2K–10K',k:'2K-10K',c:139771,a:535156668},{n:'> ₹10K',k:'>10K',c:25442,a:675282575}],
+  bals:[{n:'₹0–10K',k:'0-10K',c:398615,a:376640724},{n:'₹10K–50K',k:'10K-50K',c:360989,a:483699100},{n:'₹50K–100K',k:'50K-100K',c:107583,a:219710103},{n:'₹100K–500K',k:'100K-500K',c:136515,a:391742677},{n:'₹500K+',k:'500K+',c:42496,a:174156044}],
+  gbal:{M:{k:'0-10K',c:139499},F:{k:'0-10K',c:47978}},
+};
+
+// CROSS-TAB DATA
+const X = {"city_month":{"MUMBAI":{"8":65008,"10":356,"9":38232},"GURGAON":{"8":45681,"10":232,"9":27905},"THANE":{"8":13396,"10":83,"9":8026},"PUNE":{"8":16061,"10":101,"9":9689},"NEW DELHI":{"8":53669,"10":296,"9":30963},"DELHI":{"8":43967,"10":248,"9":26804},"CHENNAI":{"8":18189,"10":122,"9":11698},"BANGALORE":{"8":51125,"10":295,"9":30135},"NOIDA":{"8":20535,"10":117,"9":12132},"HYDERABAD":{"8":14455,"10":85,"9":8509}},"city_hour":{"MUMBAI":{"14":6732,"17":6553,"19":8523,"12":5710,"18":7154,"22":6778,"8":1729,"1":1382,"9":2628,"16":6143,"20":9731,"5":399,"6":601,"15":6408,"21":8577,"10":3468,"11":4738,"3":496,"23":4518,"7":1003,"2":614,"13":6322,"0":3029,"4":360},"GURGAON":{"19":7219,"12":4116,"16":4465,"18":6119,"13":4503,"14":4568,"20":7098,"9":2467,"22":3386,"4":289,"11":3428,"17":5253,"15":4457,"21":5443,"7":1146,"6":629,"8":1822,"23":1965,"10":2867,"1":543,"5":362,"0":1049,"2":334,"3":290},"THANE":{"8":434,"18":1479,"20":2194,"12":1256,"15":1249,"16":1201,"17":1268,"21":1834,"19":1950,"22":1298,"14":1363,"10":768,"5":89,"11":1081,"7":250,"9":545,"1":212,"13":1285,"23":804,"6":142,"4":81,"0":536,"2":95,"3":91},"PUNE":{"8":437,"15":1757,"13":1665,"10":990,"0":462,"2":128,"20":2460,"19":2313,"17":1697,"14":1748,"21":2065,"22":1507,"16":1553,"7":255,"5":83,"9":727,"11":1236,"12":1411,"4":72,"18":1902,"23":886,"3":111,"6":159,"1":227},"NEW DELHI":{"12":4990,"16":5368,"20":7313,"17":5748,"18":6619,"7":1334,"8":2093,"15":5492,"5":477,"19":7470,"21":5766,"22":3911,"14":5565,"3":452,"6":730,"11":4225,"9":2789,"1":764,"10":3429,"13":5466,"0":1443,"23":2534,"4":432,"2":518},"DELHI":{"16":4640,"20":6051,"18":5365,"22":3525,"14":4520,"6":660,"2":441,"8":1717,"12":3931,"19":6120,"15":4679,"21":4965,"17":4802,"23":2318,"5":430,"7":1111,"10":2976,"4":354,"9":2298,"13":4285,"11":3541,"0":1266,"3":392,"1":632},"CHENNAI":{"16":1704,"18":2385,"22":1307,"12":1735,"3":102,"15":1768,"19":3031,"20":3361,"21":2666,"11":1544,"14":1859,"17":1853,"10":1202,"8":620,"7":430,"5":138,"9":933,"0":245,"6":206,"13":1933,"4":113,"23":604,"1":170,"2":100},"BANGALORE":{"16":4763,"20":8148,"17":5356,"18":6435,"12":4752,"23":2104,"2":348,"22":4103,"6":544,"15":4970,"14":5371,"21":6724,"7":1079,"19":7862,"8":1664,"9":2582,"11":4025,"10":3063,"13":5091,"4":278,"3":304,"0":1073,"5":327,"1":589},"NOIDA":{"16":2079,"20":3155,"9":1082,"14":2017,"17":2220,"15":2046,"21":2509,"10":1445,"22":1554,"19":3210,"8":737,"7":481,"11":1526,"6":241,"13":1998,"18":2561,"23":808,"12":1875,"1":232,"0":448,"2":132,"4":126,"3":120,"5":182},"HYDERABAD":{"8":526,"5":121,"15":1464,"9":711,"12":1318,"11":1100,"16":1457,"19":2077,"21":1902,"20":2082,"22":1114,"17":1556,"14":1558,"7":323,"6":172,"10":919,"4":127,"18":1689,"13":1465,"23":650,"0":333,"3":122,"1":157,"2":106}},"city_gender":{"MUMBAI":{"F":32634,"M":70182},"GURGAON":{"F":25079,"M":48739},"THANE":{"F":5607,"M":15873},"PUNE":{"M":19234,"F":6611},"NEW DELHI":{"F":24420,"M":60500},"DELHI":{"M":49099,"F":21920},"CHENNAI":{"M":22787,"F":7221},"BANGALORE":{"F":24053,"M":57480},"NOIDA":{"M":23485,"F":9299},"HYDERABAD":{"F":6252,"M":16797}},"city_bucket":{"MUMBAI":{"<500":46259,"2K-10K":16928,"500-2K":37804,">10K":2605},"GURGAON":{"500-2K":25060,"<500":37136,">10K":1601,"2K-10K":10021},"THANE":{"<500":11075,"2K-10K":2889,"500-2K":7222,">10K":319},"PUNE":{"<500":13580,"500-2K":8341,"2K-10K":3356,">10K":574},"NEW DELHI":{"<500":38744,"500-2K":29963,"2K-10K":13656,">10K":2565},"DELHI":{"2K-10K":9768,"500-2K":23345,"<500":36312,">10K":1594},"CHENNAI":{"2K-10K":3611,"500-2K":10469,"<500":15238,">10K":691},"BANGALORE":{"500-2K":27228,"<500":43047,"2K-10K":9531,">10K":1749},"NOIDA":{"<500":17032,"500-2K":10970,">10K":599,"2K-10K":4183},"HYDERABAD":{"<500":12412,"500-2K":7272,"2K-10K":2787,">10K":578}},"city_bal":{"MUMBAI":{"10K-50K":34388,"500K+":6050,"0-10K":33387,"50K-100K":12507,"100K-500K":17264},"GURGAON":{"10K-50K":26919,"0-10K":21331,"100K-500K":12012,"50K-100K":9313,"500K+":4243},"THANE":{"50K-100K":2239,"100K-500K":2180,"0-10K":8679,"10K-50K":7958,"500K+":449},"PUNE":{"10K-50K":8712,"0-10K":10208,"100K-500K":3297,"50K-100K":2727,"500K+":907},"NEW DELHI":{"0-10K":25008,"100K-500K":15223,"10K-50K":28774,"50K-100K":10097,"500K+":5826},"DELHI":{"0-10K":26349,"50K-100K":7818,"100K-500K":10559,"10K-50K":23635,"500K+":2658},"CHENNAI":{"10K-50K":10744,"0-10K":11839,"100K-500K":3270,"50K-100K":2932,"500K+":1224},"BANGALORE":{"50K-100K":8368,"10K-50K":29873,"0-10K":30384,"100K-500K":9786,"500K+":3144},"NOIDA":{"0-10K":11278,"10K-50K":10929,"500K+":1360,"100K-500K":5452,"50K-100K":3765},"HYDERABAD":{"10K-50K":8327,"0-10K":9643,"500K+":909,"100K-500K":2492,"50K-100K":1678}},"month_hour":{"8":{"14":22259,"17":22736,"19":30230,"8":7451,"12":19215,"15":21155,"16":20624,"18":25969,"22":17861,"13":21242,"20":31383,"10":13371,"1":3146,"23":10887,"6":2847,"7":4837,"5":1886,"9":10620,"2":1819,"3":1722,"0":6295,"4":1585,"11":16496,"21":26450},"10":{"15":338,"11":6,"16":258,"14":58,"17":57,"5":6,"20":552,"19":177,"21":397,"7":5,"10":2,"22":66,"12":5,"18":1,"3":2,"8":1,"6":4},"9":{"14":12984,"10":7754,"5":716,"11":9942,"6":1233,"15":12797,"16":12491,"20":19658,"21":15604,"19":19368,"8":4327,"9":6142,"7":2570,"1":1762,"3":756,"4":647,"2":997,"13":12771,"17":13513,"0":3589,"12":11874,"18":15738,"22":10556,"23":6304}},"month_gender":{"8":{"F":102478,"M":239009},"10":{"M":1340,"F":594},"9":{"F":60024,"M":143827}},"month_bucket":{"8":{"<500":169092,"2K-10K":47735,"500-2K":117157,">10K":8102},"10":{"<500":937,"500-2K":676,"2K-10K":269,">10K":53},"9":{"500-2K":69841,"<500":100806,"2K-10K":28726,">10K":4720}},"month_bal":{"8":{"10K-50K":117511,"500K+":16811,"0-10K":117740,"50K-100K":38411,"100K-500K":51613},"10":{"10K-50K":714,"0-10K":610,"50K-100K":242,"100K-500K":285,"500K+":84},"9":{"0-10K":69756,"10K-50K":72034,"50K-100K":22791,"100K-500K":29637,"500K+":9875}},"gender_hour":{"F":{"14":11101,"17":12589,"19":16789,"8":3012,"12":9128,"16":11356,"18":14479,"13":10565,"20":15691,"1":1081,"9":4281,"2":645,"4":508,"15":11064,"6":936,"21":11131,"10":5690,"22":6651,"11":7392,"5":535,"7":1816,"23":3955,"0":2198,"3":503},"M":{"17":23642,"19":32946,"8":8758,"12":21895,"15":23187,"16":21963,"18":27175,"22":21796,"13":23363,"14":24124,"20":35843,"10":15391,"23":13207,"6":3140,"7":5578,"5":2067,"9":12450,"2":2168,"3":1974,"0":7670,"11":19018,"21":31284,"1":3816,"4":1721}},"gender_bucket":{"F":{"<500":73537,"2K-10K":25956,"500-2K":59614,">10K":3989},"M":{"<500":196725,"500-2K":127932,"2K-10K":50648,">10K":8871}},"gender_bal":{"F":{"10K-50K":60012,"500K+":7621,"0-10K":47978,"50K-100K":20104,"100K-500K":27381},"M":{"50K-100K":41222,"0-10K":139499,"10K-50K":130182,"100K-500K":54128,"500K+":19145}},"bucket_hour":{"<500":{"14":16635,"17":16361,"19":23064,"8":7085,"12":15290,"16":15029,"18":19222,"22":14804,"13":16424,"20":24086,"10":12048,"1":2753,"6":2705,"5":1761,"9":9976,"15":15543,"2":1774,"0":5139,"11":13796,"21":20873,"7":4766,"3":1622,"23":8569,"4":1510},"2K-10K":{"14":5392,"16":5575,"18":6305,"22":3552,"17":5936,"20":7251,"23":2428,"12":4517,"15":5477,"19":7154,"21":5534,"9":1679,"11":3364,"8":1102,"10":2327,"7":643,"13":5150,"6":338,"5":220,"0":1443,"3":217,"2":303,"1":637,"4":186},"500-2K":{"17":12821,"19":18441,"12":10406,"15":12276,"16":11699,"18":15051,"13":11472,"14":12256,"20":19259,"7":1890,"3":579,"2":688,"4":504,"9":4815,"8":3381,"6":975,"21":15414,"22":9728,"23":5902,"10":6348,"11":8636,"5":598,"0":3104,"1":1431},">10K":{"9":292,"18":1130,"14":1018,"17":1188,"15":994,"20":997,"21":630,"22":399,"16":1070,"19":1116,"11":648,"10":404,"8":211,"12":881,"13":967,"23":292,"6":66,"4":32,"3":62,"1":87,"0":198,"5":29,"2":51,"7":113}},"bucket_bal":{"<500":{"10K-50K":95734,"50K-100K":24496,"0-10K":115286,"100K-500K":27980,"500K+":7339},">10K":{"0-10K":2111,"500K+":1972,"10K-50K":3229,"50K-100K":1927,"100K-500K":3636},"2K-10K":{"500K+":7586,"0-10K":16626,"10K-50K":23785,"100K-500K":17896,"50K-100K":10837},"500-2K":{"0-10K":54083,"10K-50K":67511,"50K-100K":24184,"100K-500K":32023,"500K+":9873}},"city_month_amt":{"MUMBAI":{"8":110922632,"10":644022,"9":68122463},"GURGAON":{"8":68846694,"10":473565,"9":42774436},"THANE":{"8":17251616,"10":191083,"9":9715401},"PUNE":{"8":25815198,"10":119800,"9":13655351},"NEW DELHI":{"8":101849662,"10":503293,"9":58352898},"DELHI":{"8":64636149,"10":464027,"9":41124763},"CHENNAI":{"8":27129138,"10":337954,"9":17170729},"BANGALORE":{"8":74382897,"10":326266,"9":43715681},"NOIDA":{"8":28139276,"10":178989,"9":16145168},"HYDERABAD":{"8":24752508,"10":215928,"9":11208958}},"month_amt":{"8":543725769,"10":3454927,"9":321985849},"city_amt":{"MUMBAI":179689117,"GURGAON":112094694,"THANE":27158101,"PUNE":39590349,"NEW DELHI":160705853,"DELHI":106224940,"CHENNAI":44637821,"BANGALORE":118424843,"NOIDA":44463433,"HYDERABAD":36177394},"hour_amt":{"0":14071178,"1":6315856,"2":3107289,"3":3029125,"4":2363808,"5":2264720,"6":4609621,"7":7618529,"8":12594288,"9":19461287,"10":28637690,"11":40150394,"12":53741234,"13":63665601,"14":65141179,"15":62624928,"16":64314051,"17":68189169,"18":73097600,"19":79456159,"20":80419867,"21":55512882,"22":34657769,"23":24122320}};
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+const S = {city:null,month:null,gender:null,bucket:null,hour:null,bal:null};
+const CHARTS = {};
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════
+const fmtN = n=>{n=n||0;return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':String(n);};
+const fmtR = n=>{n=n||0;return n>=1e7?'₹'+(n/1e7).toFixed(1)+'Cr':n>=1e5?'₹'+(n/1e5).toFixed(1)+'L':'₹'+Math.round(n).toLocaleString('en-IN');};
+const fmtC = n=>(n||0).toLocaleString('en-IN');
+const toNum = v=>+(v||0);
+
+// Get base count for a dimension key
+function base(dim,val){
+  if(dim==='city')   return B.cities.find(c=>c.n===val)?.c||0;
+  if(dim==='month')  return B.months.find(m=>String(m.m)===String(val))?.c||0;
+  if(dim==='gender') return val==='M'?B.maleC:B.femaleC;
+  if(dim==='bucket') return B.buckets.find(b=>b.k===val)?.c||0;
+  if(dim==='hour')   return B.hours[+val]||0;
+  if(dim==='bal')    return B.bals.find(b=>b.k===val)?.c||0;
+  return 0;
+}
+function baseTotal(dim){
+  if(dim==='city')   return B.cities.reduce((s,c)=>s+c.c,0);
+  if(dim==='month')  return B.months.reduce((s,m)=>s+m.c,0);
+  if(dim==='gender') return B.maleC+B.femaleC;
+  if(dim==='bucket') return B.buckets.reduce((s,b)=>s+b.c,0);
+  if(dim==='hour')   return Object.values(B.hours).reduce((a,b)=>a+b,0);
+  if(dim==='bal')    return B.bals.reduce((s,b)=>s+b.c,0);
+  return 1;
+}
+
+// Cross-tab lookup: count for (dim1=v1, dim2=v2)
+function crossLookup(d1,v1,d2,v2){
+  const keys=[`${d1}_${d2}`,`${d2}_${d1}`];
+  for(const k of keys){
+    if(X[k]){
+      const kk=k.startsWith(d1)?k:`${d2}_${d1}`;
+      if(kk===`${d1}_${d2}` && X[kk]?.[v1]?.[v2]!==undefined) return X[kk][v1][v2]||0;
+      if(kk===`${d2}_${d1}` && X[kk]?.[v2]?.[v1]!==undefined) return X[kk][v2][v1]||0;
+      // Try reversed
+      if(X[`${d1}_${d2}`]?.[v1]) return X[`${d1}_${d2}`][v1][v2]||0;
+      if(X[`${d2}_${d1}`]?.[v2]) return X[`${d2}_${d1}`][v2][v1]||0;
+    }
+  }
+  return null;
+}
+
+// Compute filtered value for a dimension item given all OTHER active filters
+function filtVal(dim, val){
+  const active=Object.entries(S).filter(([k,v])=>v!==null && k!==dim);
+  if(active.length===0) return base(dim,val);
+  // Anchor on first filter: try to get cross-tab count
+  const [aD,aV]=active[0];
+  let count=crossLookup(aD,aV,dim,val);
+  if(count===null){
+    // Fallback: proportion
+    const ratio=baseTotal(aD)>0?base(aD,aV)/baseTotal(aD):1;
+    count=Math.round(base(dim,val)*ratio);
+  }
+  // Scale by remaining filters proportionally
+  for(let i=1;i<active.length;i++){
+    const [rD,rV]=active[i];
+    const rTotal=baseTotal(rD);
+    if(rTotal>0) count=Math.round(count*(base(rD,rV)/rTotal));
+  }
+  return Math.max(0,count);
+}
+
+// Get amount for a dimension item (filtered)
+function filtAmt(dim,val){
+  const active=Object.entries(S).filter(([k,v])=>v!==null && k!==dim);
+  let baseAmt=0;
+  if(dim==='city')  baseAmt=B.cities.find(c=>c.n===val)?.a||0;
+  if(dim==='month') baseAmt=B.months.find(m=>String(m.m)===String(val))?.a||0;
+  if(dim==='hour')  baseAmt=B.hourAmt[+val]||0;
+  const bCount=base(dim,val)||1;
+  const fCount=filtVal(dim,val);
+  return Math.round(baseAmt*(fCount/bCount));
+}
+
+// Total filtered count (sum over all hours as proxy)
+function filtTotal(){
+  return Array.from({length:24},(_,h)=>filtVal('hour',h)).reduce((a,b)=>a+b,0);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TOGGLE / SLICER
+// ═══════════════════════════════════════════════════════════════════
+function toggle(dim,val){
+  S[dim]=S[dim]===val?null:val;
+  syncSlicers();
+  renderAll();
+}
+function slicerChange(dim,val){
+  S[dim]=val||null;
+  renderAll();
+}
+function clearAll(){
+  Object.keys(S).forEach(k=>S[k]=null);
+  syncSlicers();
+  renderAll();
+}
+function syncSlicers(){
+  document.getElementById('slMonth').value=S.month||'';
+  document.getElementById('slGender').value=S.gender||'';
+  document.getElementById('slCity').value=S.city||'';
+  document.getElementById('slBucket').value=S.bucket||'';
+  document.getElementById('slBal').value=S.bal||'';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CHIPS + SLICER COUNT
+// ═══════════════════════════════════════════════════════════════════
+const DL={
+  city:v=>v,
+  month:v=>({8:'August',9:'September',10:'October'}[v]||v),
+  gender:v=>v==='M'?'♂ Male':'♀ Female',
+  bucket:v=>({'<500':'< ₹500','500-2K':'₹500–2K','2K-10K':'₹2K–10K','>10K':'> ₹10K'}[v]||v),
+  hour:v=>v+':00 hrs',
+  bal:v=>({'0-10K':'₹0–10K','10K-50K':'₹10K–50K','50K-100K':'₹50K–100K','100K-500K':'₹100K–500K','500K+':'₹500K+'}[v]||v),
+};
+function renderChips(){
+  const active=Object.entries(S).filter(([k,v])=>v!==null);
+  const chips=document.getElementById('chips');
+  const btn=document.getElementById('btnClear');
+  if(!active.length){
+    chips.innerHTML='<span class="no-chip">Click any chart element or use slicers to cross-filter — Power BI style</span>';
+    btn.style.display='none';
+  } else {
+    chips.innerHTML=active.map(([k,v])=>`<span class="chip" onclick="toggle('${k}','${v}')">${DL[k](v)}<span class="chip-x">✕</span></span>`).join('');
+    btn.style.display='';
+  }
+  const total=filtTotal();
+  document.getElementById('slTxnCount').textContent=fmtC(total);
+  document.getElementById('txnBadge').textContent=fmtC(total)+' txns';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// KPIs
+// ═══════════════════════════════════════════════════════════════════
+function renderKPIs(){
+  const total=filtTotal();
+  const ratio=total/B.totalCount;
+  const amt=Math.round(B.totalAmt*ratio);
+  const avg=total>0?Math.round(amt/total):0;
+  // gender
+  const mF=filtVal('gender','M'), fF=filtVal('gender','F');
+  anim('k0',fmtC(total)); anim('k1',fmtR(amt)); anim('k2','₹'+fmtC(avg));
+  anim('k3',fmtC(mF)); anim('k4',fmtC(fF));
+  // gender stats
+  const mFull=filtVal('gender','M')+filtVal('gender','F');
+  document.getElementById('gM').textContent=fmtN(mF);
+  document.getElementById('gF').textContent=fmtN(fF);
+  document.getElementById('gPct').textContent=mFull>0?Math.round(mF/mFull*100)+'%':'—';
+}
+function anim(id,val){
+  const el=document.getElementById(id);
+  el.classList.add('fade');
+  setTimeout(()=>{el.textContent=val;el.classList.remove('fade');},160);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CHART FACTORY
+// ═══════════════════════════════════════════════════════════════════
+Chart.defaults.color='#94a3b8';
+Chart.defaults.borderColor='rgba(255,255,255,0.05)';
+Chart.defaults.font.family="'Inter',sans-serif";
+
+function mkC(id,cfg){
+  if(CHARTS[id]) CHARTS[id].destroy();
+  CHARTS[id]=new Chart(document.getElementById(id).getContext('2d'),cfg);
+}
+
+const CCITY=['#4f8ef7','#a78bfa','#22d3ee','#34d399','#fbbf24','#fb7185','#c084fc','#6ee7b7','#fde68a','#fda4af'];
+const alpha=(c,a)=>c+Math.round(a*255).toString(16).padStart(2,'0');
+
+function selAlpha(dim,key,full='ff',dim2=''){
+  const sel=S[dim];
+  if(sel===null||sel===undefined) return full;
+  return String(sel)===String(key)?full:'33';
+}
+
+function sbShow(id,text){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(text){el.textContent=text;el.classList.add('show');}
+  else el.classList.remove('show');
+}
+function cardSel(id,on){
+  document.getElementById(id)?.classList.toggle('selected',on);
+}
+
+// ── HOURLY CHART ──
+function rHour(){
+  const data=Array.from({length:24},(_,h)=>filtVal('hour',h));
+  const amts=Array.from({length:24},(_,h)=>filtAmt('hour',h));
+  const isSel=S.hour!==null;
+  const colors=Array.from({length:24},(_,h)=>{
+    const a=selAlpha('hour',h);
+    if(isSel) return '#4f8ef7'+a;
+    return h>=19&&h<=22?'#fbbf24':h>=9&&h<19?'#4f8ef7':'#334155';
+  });
+  mkC('cHour',{type:'bar',data:{
+    labels:Array.from({length:24},(_,h)=>h+':00'),
+    datasets:[{data,backgroundColor:colors,borderRadius:4,borderSkipped:false,
+      hoverBackgroundColor:Array.from({length:24},(_,h)=>h>=19&&h<=22?'#fde68a':'#7aaeff')}]
+  },options:{
+    responsive:true,maintainAspectRatio:false,
+    onClick(e,els){if(els.length)toggle('hour',els[0].index);},
+    plugins:{legend:{display:false},tooltip:{callbacks:{
+      label:c=>' '+fmtC(c.raw)+' txns',
+      afterLabel:c=>' ₹'+((amts[c.dataIndex]||0)/1e5).toFixed(1)+'L volume'
+    }}},
+    scales:{x:{ticks:{maxTicksLimit:12,font:{size:9}},grid:{display:false}},
+      y:{ticks:{callback:v=>(v/1000).toFixed(0)+'K',font:{size:9}}}}
+  }});
+  sbShow('sb-hour',S.hour!==null?'⏱ Hour '+S.hour+':00 selected':null);
+  cardSel('card-hour',S.hour!==null);
+}
+
+// ── CITY CHART ──
+function rCity(){
+  const data=B.cities.map(c=>filtVal('city',c.n));
+  const colors=B.cities.map((c,i)=>CCITY[i]+(selAlpha('city',c.n)));
+  mkC('cCity',{type:'bar',data:{
+    labels:B.cities.map(c=>c.n.split(' ')[0]),
+    datasets:[{data,backgroundColor:colors,borderRadius:5,borderSkipped:false}]
+  },options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    onClick(e,els){if(els.length)toggle('city',B.cities[els[0].index].n);},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmtC(c.raw)+' txns'}}},
+    scales:{x:{ticks:{callback:v=>(v/1000).toFixed(0)+'K',font:{size:9}},grid:{display:false}},
+      y:{ticks:{font:{size:11}}}}
+  }});
+  sbShow('sb-city',S.city?'📍 '+S.city:null);
+  cardSel('card-city',S.city!==null);
+}
+
+// ── GENDER DONUT ──
+function rGender(){
+  const M=filtVal('gender','M'),F=filtVal('gender','F');
+  const ma=selAlpha('gender','M'),fa=selAlpha('gender','F');
+  mkC('cGender',{type:'doughnut',data:{
+    labels:['Male','Female'],
+    datasets:[{data:[M,F],backgroundColor:['#4f8ef7'+ma,'#fb7185'+fa],borderColor:'#0f1623',borderWidth:3}]
+  },options:{
+    responsive:true,maintainAspectRatio:false,cutout:'68%',
+    onClick(e,els){if(els.length)toggle('gender',els[0].index===0?'M':'F');},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmtC(c.raw)+' txns'}}}
+  }});
+  sbShow('sb-gender',S.gender?'Selected: '+(S.gender==='M'?'Male':'Female'):null);
+  cardSel('card-gender',S.gender!==null);
+}
+
+// ── BUCKET DONUT ──
+function rBucket(){
+  const data=B.buckets.map(b=>filtVal('bucket',b.k));
+  const BC=['#34d399','#4f8ef7','#fbbf24','#fb7185'];
+  const alphas=B.buckets.map(b=>selAlpha('bucket',b.k));
+  mkC('cBucket',{type:'doughnut',data:{
+    labels:B.buckets.map(b=>b.n),
+    datasets:[{data,backgroundColor:BC.map((c,i)=>c+alphas[i]),borderColor:'#0f1623',borderWidth:3}]
+  },options:{
+    responsive:true,maintainAspectRatio:false,cutout:'65%',
+    onClick(e,els){if(els.length)toggle('bucket',B.buckets[els[0].index].k);},
+    plugins:{legend:{
+      display:true,position:'bottom',
+      labels:{boxWidth:8,font:{size:9},padding:8,color:'#94a3b8'}
+    },tooltip:{callbacks:{label:c=>' '+fmtC(c.raw)+' txns'}}}
+  }});
+  sbShow('sb-bucket',S.bucket?'💰 '+S.bucket:null);
+  cardSel('card-bucket',S.bucket!==null);
+}
+
+// ── MONTHLY CHART ──
+function rMonth(){
+  const data=B.months.map(m=>filtVal('month',m.m));
+  const amts=B.months.map(m=>filtAmt('month',m.m));
+  const MO=['#4f8ef7','#a78bfa','#34d399'];
+  const alphas=B.months.map(m=>selAlpha('month',m.m));
+  mkC('cMonth',{type:'bar',data:{
+    labels:B.months.map(m=>m.n),
+    datasets:[
+      {label:'Transactions',data,backgroundColor:MO.map((c,i)=>c+alphas[i]),borderRadius:6,borderSkipped:false,yAxisID:'y'},
+      {label:'Volume (₹Cr)',data:amts.map(a=>(a/1e7).toFixed(2)),
+       type:'line',borderColor:'#fbbf24',backgroundColor:'rgba(251,191,36,.1)',
+       borderWidth:2,pointRadius:5,pointBackgroundColor:'#fbbf24',yAxisID:'y2',tension:.3}
+    ]
+  },options:{
+    responsive:true,maintainAspectRatio:false,
+    onClick(e,els){if(els.length)toggle('month',B.months[els[0].index].m);},
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:9},color:'#94a3b8'}},
+      tooltip:{callbacks:{label:c=>c.datasetIndex===0?' '+fmtC(c.raw)+' txns':' ₹'+c.raw+' Cr'}}},
+    scales:{
+      x:{ticks:{font:{size:11}},grid:{display:false}},
+      y:{ticks:{callback:v=>(v/1000).toFixed(0)+'K',font:{size:9}}},
+      y2:{position:'right',ticks:{callback:v=>'₹'+v+'Cr',font:{size:9}},grid:{display:false}}
+    }
+  }});
+  sbShow('sb-month',S.month?'📅 '+({8:'August',9:'September',10:'October'}[S.month]):null);
+  cardSel('card-month',S.month!==null);
+}
+
+// ── BALANCE CHART ──
+function rBal(){
+  const data=B.bals.map(b=>filtVal('bal',b.k));
+  const BC2=['#22d3ee','#4f8ef7','#a78bfa','#c084fc','#e879f9'];
+  const alphas=B.bals.map(b=>selAlpha('bal',b.k));
+  mkC('cBal',{type:'bar',data:{
+    labels:B.bals.map(b=>b.n),
+    datasets:[{data,backgroundColor:BC2.map((c,i)=>c+alphas[i]),borderRadius:5,borderSkipped:false}]
+  },options:{
+    responsive:true,maintainAspectRatio:false,
+    onClick(e,els){if(els.length)toggle('bal',B.bals[els[0].index].k);},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fmtC(c.raw)+' customers'}}},
+    scales:{x:{ticks:{font:{size:9},maxRotation:30},grid:{display:false}},
+      y:{ticks:{callback:v=>(v/1000).toFixed(0)+'K',font:{size:9}}}}
+  }});
+  sbShow('sb-bal',S.bal?'🏦 Balance: '+S.bal:null);
+  cardSel('card-bal',S.bal!==null);
+}
+
+// ── CITY AMOUNT CHART ──
+function rCityAmt(){
+  const data=B.cities.map(c=>filtAmt('city',c.n));
+  const colors=B.cities.map((c,i)=>CCITY[i]+(selAlpha('city',c.n)));
+  mkC('cCityAmt',{type:'bar',data:{
+    labels:B.cities.map(c=>c.n.split(' ')[0]),
+    datasets:[{data:data.map(a=>(a/1e7).toFixed(2)),backgroundColor:colors,borderRadius:5,borderSkipped:false}]
+  },options:{
+    responsive:true,maintainAspectRatio:false,
+    onClick(e,els){if(els.length)toggle('city',B.cities[els[0].index].n);},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.raw+' Cr'}}},
+    scales:{x:{ticks:{font:{size:9},maxRotation:30},grid:{display:false}},
+      y:{ticks:{callback:v=>'₹'+v+'Cr',font:{size:9}}}}
+  }});
+  sbShow('sb-cityamt',S.city?'📍 '+S.city:null);
+  cardSel('card-cityamt',S.city!==null);
+}
+
+// ── GENDER × BALANCE STACKED CHART ──
+function rGBal(){
+  const BALK=B.bals.map(b=>b.k);
+  const BALN=B.bals.map(b=>b.n);
+  // Get gender_bal cross data, apply other filters
+  const active=Object.entries(S).filter(([k,v])=>v!==null&&k!=='gender'&&k!=='bal');
+  let scaleFactor=1;
+  for(const [d,v] of active){ const t=baseTotal(d);if(t>0)scaleFactor*=base(d,v)/t; }
+  const mData=BALK.map(k=>{
+    let v=X.gender_bal?.M?.[k]||0;
+    if(S.gender==='F') v=0;
+    return Math.round(v*scaleFactor);
+  });
+  const fData=BALK.map(k=>{
+    let v=X.gender_bal?.F?.[k]||0;
+    if(S.gender==='M') v=0;
+    return Math.round(v*scaleFactor);
+  });
+  mkC('cGBal',{type:'bar',data:{
+    labels:BALN,
+    datasets:[
+      {label:'Male',data:mData,backgroundColor:'rgba(79,142,247,.75)',borderRadius:4,stack:'s'},
+      {label:'Female',data:fData,backgroundColor:'rgba(251,113,133,.75)',borderRadius:4,stack:'s'}
+    ]
+  },options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:9},color:'#94a3b8'}},
+      tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmtC(c.raw)}}},
+    scales:{x:{stacked:true,ticks:{font:{size:9},maxRotation:30},grid:{display:false}},
+      y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'K',font:{size:9}}}}
+  }});
+}
+
+// ── CITY RANK LIST ──
+function rCityList(){
+  const data=B.cities.map(c=>({...c,fv:filtVal('city',c.n)}));
+  const maxFv=Math.max(...data.map(d=>d.fv));
+  document.getElementById('cityList').innerHTML=data.map((d,i)=>`
+    <li class="ci ${S.city===d.n?'active':''}" onclick="toggle('city','${d.n}')">
+      <span class="ci-rk">${i+1}</span>
+      <span class="ci-nm">${d.n.split(' ').map(w=>w[0]+w.slice(1).toLowerCase()).join(' ')}</span>
+      <div class="ci-bar-w"><div class="ci-bar" style="width:${maxFv>0?Math.round(d.fv/maxFv*100):0}%"></div></div>
+      <span class="ci-ct">${fmtN(d.fv)}</span>
+    </li>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════════════════
+function renderAll(){
+  renderChips();
+  renderKPIs();
+  rHour(); rCity(); rGender(); rBucket();
+  rMonth(); rBal(); rCityAmt(); rGBal();
+  rCityList();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+document.getElementById('hdDate').textContent=
+  new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+renderAll();
+</script>
+</body>
+</html>
