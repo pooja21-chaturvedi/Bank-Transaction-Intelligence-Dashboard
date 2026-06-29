@@ -58,8 +58,4 @@ AI tools (Claude and ChatGPT) were used to accelerate UI development, generate i
 - Analytical Thinking
 
 
-> Add your dashboard screenshots here.
-
----
-
 ## ⭐ If you found this project useful, consider giving it a star!
